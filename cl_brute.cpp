@@ -3,7 +3,7 @@
 /*
    Copyright (C) 2013  AIDEUS
    authors: Sergey Rodionov (astroseger@gmail.com)
-            Alexey Potapov  (pas.aicv@gmail.com)
+            Alexey Potapov  (potapov@aideus.com)
    aideus.com
 
    This file is part of cl-lab.
