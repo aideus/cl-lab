@@ -25,6 +25,7 @@ const char* defv[] = {
    "max_mem=100000\n      Maximal memory consumation during a computation (nterms)",
    "minl=2\n              Minimal program length",
    "maxl=15\n             Maximal program length",
+   "postfix=none\n        postfix to every program",
    "verbose=f\n           Print programs which hits limits",
    NULL
 };
@@ -38,13 +39,17 @@ int main(int argc, char *argv[])
    string alphabet = p.get_s("alphabet");
    string ignore   = p.get_s("ignore");
    string required = p.get_s("req");
-   int max_steps = p.get_i("max_steps");
-   int max_mem   = p.get_i("max_mem");
-   int minl      = p.get_i("minl");
-   int maxl      = p.get_i("maxl");
-   bool  verbose = p.get_b("verbose");
-   
+   int max_steps  = p.get_i("max_steps");
+   int max_mem    = p.get_i("max_mem");
+   int minl       = p.get_i("minl");
+   int maxl       = p.get_i("maxl");
+   bool  verbose  = p.get_b("verbose");
+   string postfix = p.get_s("postfix"); 
    int counter     = 0;
+   
+   postfix = p.get_s("postfix");
+   if (postfix == "none")
+     postfix.clear();
    
    
    for (int l = minl ; l < maxl ; l++)
@@ -55,6 +60,7 @@ int main(int argc, char *argv[])
 	string s;
 	while(bg.get_next(s))
 	  {
+	     s += postfix;
 	     cl_term term(s, &counter);
 	     cl_resultator_exact rz(required, ignore);
 	     int steps_left = max_steps;

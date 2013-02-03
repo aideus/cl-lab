@@ -16,14 +16,33 @@
 #include <algorithm>
 #include <locale>
 #include <sstream>
-
-//global counter ---> not THREAD SAFE!!!
-static int cl_term_global_counter = 0;
+#include <stack>
 
 cl_term::cl_term(char term_, int* counter_):term(term_)
 {
    install_counter(counter_);
 }
+//                                                                           
+/*cl_term::cl_term(const cl_term& cl)
+{
+   term    = cl.term;
+   install_counter(cl.counter);
+   typedef pair<cl_term*, const cl_term*> pair_type;
+   stack<pair_type> chain_copy_stack; //to,from
+   chain_copy_stack.push(pair_type(this, &cl));
+   while(!chain_copy_stack.empty())
+     {
+	cl_term* to         = chain_copy_stack.top().first;
+	const cl_term* from = chain_copy_stack.top().second;
+	chain_copy_stack.pop();
+	for (list<cl_term*>::const_iterator it = from->chain.begin(); it != from->chain.end() ; it++)
+	  {
+	     cl_term* t = new cl_term((*it)->term, (*it)->counter);
+	     chain_copy_stack.push(pair_type(t, *it));
+	     to->chain.push_back(t);
+	  }
+     }
+}*/
 //                                                                         
 cl_term::cl_term(const cl_term& cl)
 {
@@ -37,10 +56,10 @@ cl_term::cl_term(const cl_term& cl)
 //                                                                        
 void cl_term::install_counter(int* counter_)
 {
-   if (counter_ == NULL)
-     counter = &cl_term_global_counter;
-   else
-     counter = counter_;
+//   if (counter_ == NULL)
+//     counter = &cl_term_global_counter;
+//   else
+   counter = counter_;
    (*counter)++;
 }
 //                                                                        
@@ -77,6 +96,46 @@ void cl_term::rec_print(ostream& out)
 	  }
      }
 }
+//                                                                        
+/*void cl_term::non_rec_print(ostream& out)
+{
+   out<<term;
+   typedef pair_type pair<list<cl_term*>::const_iterator, cl_term*>; 
+   stack<pair_type> rps; //return point stack
+   rps.push(pair_type(this,chain.begin()));
+   while(!rps.empty())
+     {
+	list<cl_term*>::const_iterator it = rps.top().first;
+	cl_term*                       t  = rps.top().second;
+	bool is_stop = false;
+	while(it != t.end() && !is_stop)
+	  {
+	     if ((*it)->chain.size() == 0)
+	       out<<(*it)->term;
+	     else
+	       {
+		  is_stop = true;
+		  out<<'(';
+		  rps.push_back(*it, it->chain.begin()))
+		  (*it)->rec_print(out);
+		  out<<')';
+	       }
+	     it++;
+	  }
+	rps.pop();
+     }
+   for (list<cl_term*>::iterator it = chain.begin(); it != chain.end() ; it++)
+     {
+	if ((*it)->chain.size() == 0)
+	  out<<(*it)->term;
+	else
+	  {
+	     out<<'(';
+	     (*it)->rec_print(out);
+	     out<<')';
+	  }
+     }
+}*/
 //                                                                        
 string cl_term::conv2str()
 {
@@ -356,7 +415,6 @@ void cl_term::rec_create_term(string s, size_t& pos)
    pos++; //eat tailing ')'
 }
 //                                                                           
-
 int cl_term::count_nonterm_nodes()
 {
   int count = chain.size();
@@ -489,6 +547,19 @@ void cl_term::trim_mutation(double p)
 	     return;
 	  }
 	(*it)->trim_mutation(p);
+     }
+}
+//                                                                       
+void cl_term::add_postfix(string postfix)
+{
+   for(size_t i = 0 ; i < postfix.size() ;i++)
+     {
+	if (postfix[i] == ')' || postfix[i] == '(')
+	  {
+	     cerr<<"Error | cl_term::add_postfix | postfix shoudn't contain \'(\' or \')\'"<<endl;
+	     exit(EXIT_FAILURE);
+	  }
+	chain.push_back(new cl_term(postfix[i], counter));
      }
 }
 //                                                                       

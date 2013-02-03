@@ -34,6 +34,7 @@ const char* defv[] = {
    "p_echange_mutation=0.05\n   probability of echange mutation",
    "p_trim_mutation=0.05\n      probability of trim mutation",
    "crossover_type=1\n          0-alex, 1-sergey1",
+   "postfix=none\n              postfix to every program",
    NULL
 };
 
@@ -44,6 +45,7 @@ size_t max_mem, max_steps;
 int counter;   //global counter (we use it in cl_term for assess memory usage)
 double p_echange_mutation, p_trim_mutation;
 int crossover_type;
+string postfix;
 
 vector<cl_ga_member*> population;
 cl_ga_uniqchecker     uniqchecker;
@@ -93,7 +95,9 @@ void init(int argc, char*argv[])
    valuator = new cl_ga_valuator(p.get_i("pen_progsize"), 
 				 p.get_i("pen_wrongrez"), 
 				 p.get_i("pen_absentrez"));
-  
+   postfix = p.get_s("postfix");
+   if (postfix == "none")
+     postfix.clear();
 }
 //                                                                          
 void create_population()
@@ -200,6 +204,9 @@ void print_best_result()
    cout<<"Best/Worse="<<population.at(0)->penalty<<"/"<<population.back()->penalty<<endl;
    
    cl_term cl_calc(*(population.at(0)->term));
+   if (!postfix.empty())
+     cl_calc.add_postfix(postfix);
+
    cl_resultator_length resultator(int(req_rez.size() * 1.5) + 1 , ignore);
    cl_calc.reduce_all(max_steps, counter + max_mem, &resultator);
    string long_rez = resultator.get_rez();
@@ -226,9 +233,11 @@ cl_ga_member* make_cl_ga_member(cl_term* cl)
    member->term = cl;
    member->term_str = cl->conv2str();
       
-   cl_term* cl_calc = new cl_term(*cl);
+   cl_term cl_calc(*cl);
+   if (!postfix.empty())
+     cl_calc.add_postfix(postfix);
    cl_resultator_length resultator(req_rez.size(), ignore);
-   int rez = cl_calc->reduce_all(max_steps, counter + max_mem, &resultator);
+   int rez = cl_calc.reduce_all(max_steps, counter + max_mem, &resultator);
    
    member->rez = resultator.get_rez();
       
@@ -242,10 +251,7 @@ cl_ga_member* make_cl_ga_member(cl_term* cl)
      member->penalty = valuator->evaluate(member->term_str.size(), member->rez, req_rez);
    else
      member->penalty = 1e+100; //some big number if we hit limits (bad style... I know)
-   
-   
-   delete cl_calc;
-   
+      
    member->generation = iteration;
    return member;
 }

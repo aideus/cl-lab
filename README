@@ -1,4 +1,4 @@
-cl-lab v0.01
+﻿cl-lab v0.01
 
 The set of tools for our researches with combinatory logic.
 
@@ -6,6 +6,27 @@ Authors:
 
 Sergey Rodionov (astroseger@gmail.com)
 Alexey Potapov  (potapov@aideus.com)
-
 aideus.com
 
+Description:
+
+for each of the programs: ./program help=h  print small help.
+
+cl_print - simple program to print result fo CL reduction 
+           example: ./cl_print "S(K(SI))(S(KK)I)xy"
+
+cl_bruteforce - program for search CL expression which generate a given result
+                by brute force.                
+		example: ./cl_bruteforce 010101010101010101010101 alphabet=SKI01 ignore=SKI
+
+cl_ga - program for search CL expression which generate a give results
+        by genetic algorithm.
+	example: ./cl_ga 010101010101010101010101 alphabet=SKI01 ignore=SKI
+	
+	
+KNOWN BUGS:
+
+We use recursive function for reduction. For some cl expressions we
+can fast hit system stack size limit. You can ether decrease  number of
+allowed reduction (" ./cl_print Yx max_steps=10000") ether increase
+system stack size ("ulimit -s 100000000000" for linux)

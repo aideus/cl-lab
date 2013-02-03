@@ -28,10 +28,7 @@ class cl_term
 {
  public:      
    cl_term(char term_, int* counter); //create empty 
-   cl_term(const cl_term&);           //copy all tree
-   //recursively create tree from cl expression
-   //if counter == NULL --> we use global counter 
-   //and it is NOT THREAD-SAFE
+   cl_term(const cl_term&);           //copy all tree   
    cl_term(string s, int* counter);   
    ~cl_term();
    
@@ -72,6 +69,9 @@ class cl_term
    
    //make only one trim at once!!!
    void trim_mutation(double p);
+   
+   //add simple postfix
+   void add_postfix(string postfix);
  private:
    void install_counter(int* counter);
       
@@ -87,7 +87,6 @@ class cl_term
    //recursively create term
    void rec_create_term(string s, size_t& pos); 
    
-//   void non_rec_create(const cl_term&);
  private:
    char term;
    list<cl_term*> chain; // to which this term is applied
