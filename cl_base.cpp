@@ -184,6 +184,31 @@ bool cl_term::reduce()
 	apply_Y();
 	return true;
      }
+   else if (term == 'M' && chain.size() >= 1)
+     {
+	apply_M();
+	return true;
+     }
+   else if (term == 'T' && chain.size() >= 2)
+     {
+	apply_T();
+	return true;
+     }
+   else if (term == 'J' && chain.size() >= 4)
+     {
+	apply_J();
+	return true;
+     }
+   else if (term == 'b' && chain.size() >= 3)
+     {
+	apply_b();
+	return true;
+     }
+   else if (term == 'V' && chain.size() >= 3)
+     {
+	apply_V();
+	return true;
+     }
    return false;
 }
 //                                                                             
@@ -334,8 +359,8 @@ void cl_term::apply_W()
    chain.erase(chain.begin(), ++it); //remove a and b from the chain
    
    cl_term* b2 = new cl_term(*b); //copy b
-   chain.insert(chain.begin(), b);  //insert b in from of the chain
-   chain.insert(chain.begin(), b2); //insert b2 in from of the chain
+   chain.insert(chain.begin(), b);  //insert b in front of the chain
+   chain.insert(chain.begin(), b2); //insert b2 in front of the chain
    
    
    //replace current term with a
@@ -360,6 +385,111 @@ void cl_term::apply_Y()
    
    //replace current term with a
    replace_this_with_a(a);   
+}
+//                                                                          
+void cl_term::apply_M()
+{
+   if (term != 'M' && chain.size() < 1)
+     {
+	cerr<<"Error | cl_term::apply_M | bad term application"<<endl;
+     }
+   //M a --> aa
+   list<cl_term*>::iterator it = chain.begin();
+   cl_term *a = *it;       //a
+   
+   cl_term* a2 = new cl_term(*a); //copy a
+      
+   //replace current term with a2
+   replace_this_with_a(a2);
+}
+//                                                                          
+void cl_term::apply_T()
+{
+   if (term != 'T' && chain.size() < 2)
+     {
+	cerr<<"Error | cl_term::apply_T | bad term application"<<endl;
+     }
+   //T a b --> b a
+   list<cl_term*>::iterator it = chain.begin();
+   cl_term *a = *it;     //a
+   cl_term *b = *(++it); //b
+   chain.erase(chain.begin(), ++it); //remove a and b from the chain
+   
+   chain.insert(chain.begin(), a);  //insert a in front of the chain
+      
+   //replace current term with b
+   replace_this_with_a(b);
+}
+//                                                                             
+void cl_term::apply_J()
+{
+   if (term != 'J' && chain.size() < 4)
+     {
+	cerr<<"Error | cl_term::apply_J | bad term application"<<endl;
+     }
+   //J abcd --> ab(adc)  
+   list<cl_term*>::iterator it = chain.begin();
+   cl_term *a = *it;     //a
+   cl_term *b = *(++it); //b
+   cl_term *c = *(++it); //c
+   cl_term *d = *(++it); //d
+   chain.erase(chain.begin(), ++it); //remove a, b, c, d from the chain
+   
+   cl_term* a2 = new cl_term(*a); //copy a
+   
+   a2->chain.push_back(d);    //add d to a2
+   a2->chain.push_back(c);    //add c to a2
+   
+   
+   chain.insert(chain.begin(), a2); //add a2dc to the front of the chain
+   chain.insert(chain.begin(), b);   //add c to the front of the chain
+   
+   //replace current term with a
+   replace_this_with_a(a);
+}
+//                                                                             
+void cl_term::apply_b()
+{
+   if (term != 'b' && chain.size() < 3)
+     {
+	cerr<<"Error | cl_term::apply_b | bad term application"<<endl;
+     }
+   //B' abc  --> b(ac)
+   
+   list<cl_term*>::iterator it = chain.begin();
+   cl_term *a = *it;     //a
+   cl_term *b = *(++it); //b
+   cl_term *c = *(++it); //c
+   chain.erase(chain.begin(), ++it); //remove a, b, c from the chain
+      
+   a->chain.push_back(c); //add c to a
+      
+   chain.insert(chain.begin(), a); //add (ac) to the front of the chain
+   
+   //replace current term with b
+   replace_this_with_a(b);
+}
+//                                                                             
+void cl_term::apply_V()
+{
+   if (term != 'V' && chain.size() < 3)
+     {
+	cerr<<"Error | cl_term::apply_V | bad term application"<<endl;
+     }
+   //Vabc cab
+   
+   list<cl_term*>::iterator it = chain.begin();
+   cl_term *a = *it;     //a
+   cl_term *b = *(++it); //b
+   cl_term *c = *(++it); //c
+   chain.erase(chain.begin(), ++it); //remove a, b, c from the chain
+      
+      
+   chain.insert(chain.begin(), b); //add b to the front of the chain
+   chain.insert(chain.begin(), a); //add a to the front of the chain
+   
+   //replace current term with c
+   replace_this_with_a(c);
 }
 //                                                                           
 void cl_term::replace_this_with_a(cl_term* a)

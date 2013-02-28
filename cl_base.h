@@ -75,14 +75,20 @@ class cl_term
  private:
    void install_counter(int* counter);
       
-   void apply_S(); //Sabc ab(bc)
-   void apply_K(); //Kab  a
-   void apply_I(); //Ia   a
-   void apply_B(); //Babc a(bc)
-   void apply_C(); //Cabc acb
-   void apply_W(); //Wxy  xyy
-   void apply_Y(); //Yx   x(Yx)
-  
+   void apply_S(); //Sabc   ac(bc)
+   void apply_K(); //Kab    a
+   void apply_I(); //Ia     a
+   void apply_B(); //Babc   a(bc)
+   void apply_C(); //Cabc   acb
+   void apply_W(); //Wab    abb
+   void apply_Y(); //Yx     x(Yx)
+   void apply_M(); //Mx     xx
+   void apply_T(); //Txy    yx
+   void apply_J(); //Jxyzv  xy(xvz)
+   void apply_b(); //B'xyz  y(xz)
+   void apply_V(); //Vxyz   zxy
+   
+   
    void replace_this_with_a(cl_term* a);
    //recursively create term
    void rec_create_term(string s, size_t& pos); 

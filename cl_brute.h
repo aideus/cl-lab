@@ -35,6 +35,7 @@ class cl_brute_generator
    //generate random string
    //(state of get_next function will be changed)
    string create_random();
+   size_t get_allb_size(){return allb.size();};
  private:
    bool get_next_cs();
    void generate_string(string& s);
