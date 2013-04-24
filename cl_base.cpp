@@ -13,6 +13,7 @@
 */
 
 #include "cl_base.h"
+#include "cl_termstorage.h"
 #include <algorithm>
 #include <locale>
 #include <sstream>
@@ -20,7 +21,7 @@
 
 cl_term::cl_term(char term_, int* counter_):term(term_)
 {
-   install_counter(counter_);
+   install_counter_null_ts(counter_);
 }
 //                                                                           
 /*cl_term::cl_term(const cl_term& cl)
@@ -44,29 +45,63 @@ cl_term::cl_term(char term_, int* counter_):term(term_)
      }
 }*/
 //                                                                         
-cl_term::cl_term(const cl_term& cl)
+cl_term::cl_term(cl_term& cl, bool is_delayed)
 {
-   term    = cl.term;
-   install_counter(cl.counter);
-   for (list<cl_term*>::const_iterator it = cl.chain.begin(); it != cl.chain.end() ; it++)
+   install_counter_null_ts(cl.counter);
+   if (is_delayed && cl.is_nontrivial())
      {
-	chain.push_back((new cl_term(*(*it))));
+	//if it was already copied and chain is empty ---> just add one origin
+	if (cl.term == CL_TS_TERM && cl.chain.empty()) 
+	  {	     
+	     cl.ts->add_new_origin(this); //add this as origin to ts 
+	  }
+	else //normal delayed copy
+	  {
+	     ts    = new cl_termstorage(cl);	
+	     ts->add_new_origin(this);
+	  }
+     }
+   else
+     {
+	init_from_term(cl);
      }
 }
 //                                                                        
-void cl_term::install_counter(int* counter_)
+cl_term::cl_term(const cl_term& cl)
+{
+   install_counter_null_ts(cl.counter);
+   init_from_term(cl);
+}
+//                                                                        
+void cl_term::install_counter_null_ts(int* counter_)
 {
 //   if (counter_ == NULL)
 //     counter = &cl_term_global_counter;
 //   else
    counter = counter_;
    (*counter)++;
+   ts      = NULL;
+}
+//                                                                      
+void cl_term::init_from_term(const cl_term& cl)
+{
+   if (cl.term == CL_TS_TERM)
+     {
+	cerr<<"error | cl_term::cl_term | TS-term in non delayed copy"<<endl;
+	cerr<<cl.conv2str()<<endl;
+	exit(EXIT_FAILURE);
+     }
+   term    = cl.term;
+   for (list<cl_term*>::const_iterator it = cl.chain.begin(); it != cl.chain.end() ; it++)
+     {
+	chain.push_back((new cl_term(*(*it))));
+     }
 }
 //                                                                        
 cl_term::cl_term(string str, int* counter_)
 {
    term = 0;
-   install_counter(counter_);   
+   install_counter_null_ts(counter_);   
    str = "(" + str + ")";
    //c++ is shit
    str.erase(std::remove_if(str.begin(), str.end(), (int(*)(int))isspace), str.end());
@@ -76,27 +111,57 @@ cl_term::cl_term(string str, int* counter_)
 //                                                                        
 cl_term::~cl_term()
 {
+//   cout<<"delete "<<term<<" "<<chain.size()<<endl;
    (*counter)--;
    for (list<cl_term*>::iterator it = chain.begin(); it != chain.end() ; it++)
      delete *it;
+   if (term == CL_TS_TERM)
+     {
+	if (ts == NULL || ts->norigins <= 0) // something wrong
+	  {
+	     cerr<<"Error | cl_term::~cl_term | ts is NULL but test is CL_TS_TERM"<<endl;
+	     exit(EXIT_FAILURE);
+	  }
+	ts->norigins--;
+	if (ts->norigins == 0) //nobody refer to it anymore
+	  delete ts;
+	ts = NULL;
+     }
+   if (ts != NULL)
+     {
+	cerr<<"Error | cl_term::~cl_term | ts != NULL"<<endl;
+	exit(EXIT_FAILURE);
+     }
 }
 //                                                                        
 bool cl_term::rec_conv2str(string& str, size_t max_len) const
 {
-   
-   str += term;
+   if (term == CL_TS_TERM)
+     {
+	if (ts == NULL)
+	  {
+	     cerr<<"Error | cl_term::rec_print | ts is NULL"<<endl;
+	     exit(EXIT_FAILURE);
+	  }
+	str += '(';
+	if (!ts->t->rec_conv2str(str, max_len))
+	  return false;
+	str += ')';	
+     }
+   else
+     str += term;
    for (list<cl_term*>::const_iterator it = chain.begin(); it != chain.end() ; it++)
      {
-	if ((*it)->chain.size() > 0)
+	if ((*it)->chain.size() > 0 || (*it)->term == CL_TS_TERM)
 	  str +='(';
 	if ( ! (*it)->rec_conv2str(str, max_len) )
 	  return false;
-	if ((*it)->chain.size() > 0)
+	if ((*it)->chain.size() > 0 || (*it)->term == CL_TS_TERM)
 	  str += ')';
      }
    if (max_len > 0 && str.size() > max_len)
      return false;
-   return true;   
+   return true;
 }
 //                                                                        
 /*void cl_term::non_rec_print(ostream& out)
@@ -210,7 +275,7 @@ bool cl_term::reduce()
      {
 	apply_V();
 	return true;
-     }
+     }   
    return false;
 }
 //                                                                             
@@ -220,16 +285,76 @@ int cl_term::reduce_all(int max_steps, int max_mem, cl_resultator* resultator)
    return reduce_all_(steps_left, max_mem, resultator);
 }
 //                                                                             
+int cl_term::one_level_reduce(int& steps_left, int max_mem)
+{
+   while (1)
+     {
+//	cout<<"process: "<<term<<endl;
+	if (reduce())
+	  {
+	     steps_left--;
+	     if (steps_left <= 0)
+	       return -2; //hit steps limit
+	     if (max_mem <= *counter) 
+	       return -3; //hit memory limit
+	  }
+	else if (term == CL_TS_TERM)
+	  {
+	     if (!ts->is_reduced)
+	       {
+		  int rez = ts->t->one_level_reduce(steps_left, max_mem); 
+		  if (rez < 0) //limits was hit
+		    return rez; 
+		  ts->is_reduced = true;
+	       }
+	     if (ts->t->term == CL_TS_TERM) //it's impossible if it was reduced!
+	       {
+		  cerr<<"error | cl_term::one_level_reduce | impossible"<<endl;
+		  exit(EXIT_FAILURE);
+	       }
+	     if (ts->norigins == 1) //only one origin ... so we just replace
+	       {
+		  //we make it first
+		  ts->norigins--;
+		  
+		  //like replace_this_with_a but without delete a
+		  term = ts->t->term; 
+		  chain.splice(chain.begin(), ts->t->chain);
+		  
+		  delete ts;
+		  //it cannot be CL_TS_TERM so NULL
+		  ts = NULL;
+	       }
+	     else //more then one origin --- we really copy it
+	       {
+		  term = ts->t->term;		  
+		  list<cl_term*> chain_to;
+		  
+		  for (list<cl_term*>::iterator it = ts->t->chain.begin();
+		      it != ts->t->chain.end();
+		      it++)
+		    {
+		       chain_to.push_back((new cl_term(*(*it), true))); //create and allow deleyed copy
+		    }
+		  chain.splice(chain.begin(), chain_to);
+		    
+		  ts->norigins--;
+		  
+		  //and finally because it cannot be CL_TS_TERM
+		  ts = NULL; 
+	       }
+	  }
+	else 
+	  return 0; //ok 
+     }
+}
+//                                                                             
 int cl_term::reduce_all_(int& steps_left, int max_mem, cl_resultator* resultator)
 {
-   while (reduce())
-     {
-	steps_left--;
-	if (max_mem <= *counter) 
-	  return -3; //hit memory limit
-	if (steps_left <= 0)
-	  return -2; //hit steps limit
-     }
+   int rez = one_level_reduce(steps_left, max_mem);
+   if (rez < 0) //limits was hit
+     return rez;
+   
    //so head can be added to resultator
    if (resultator != NULL)
      {
@@ -260,7 +385,7 @@ void cl_term::apply_S()
    cl_term *c = *(++it); //c
    chain.erase(chain.begin(), ++it); //remove a, b, c from the chain
    
-   cl_term* c2 = new cl_term(*c); //copy c
+   cl_term* c2 = new cl_term(*c, true); //copy c (allow delayed copy)
    
    b->chain.push_back(c2); //add second c to b
    
@@ -360,7 +485,7 @@ void cl_term::apply_W()
    cl_term *b = *(++it); //b
    chain.erase(chain.begin(), ++it); //remove a and b from the chain
    
-   cl_term* b2 = new cl_term(*b); //copy b
+   cl_term* b2 = new cl_term(*b, true); //copy b, allow delayed copy
    chain.insert(chain.begin(), b);  //insert b in front of the chain
    chain.insert(chain.begin(), b2); //insert b2 in front of the chain
    
@@ -379,7 +504,7 @@ void cl_term::apply_Y()
    list<cl_term*>::iterator it = chain.begin(); //iterator to a
    cl_term *a = *it;     //a
    chain.erase(it);      //remove a from the chain
-   cl_term* a2 = new cl_term(*a); //copy a
+   cl_term* a2 = new cl_term(*a, true); //copy a, allow delayed copy
    
    cl_term* Y  = new cl_term('Y',counter);
    Y->chain.push_back(a2);   //Ya2
@@ -399,7 +524,7 @@ void cl_term::apply_M()
    list<cl_term*>::iterator it = chain.begin();
    cl_term *a = *it;       //a
    
-   cl_term* a2 = new cl_term(*a); //copy a
+   cl_term* a2 = new cl_term(*a, true); //copy a, allow delayed copy
       
    //replace current term with a2
    replace_this_with_a(a2);
@@ -437,7 +562,7 @@ void cl_term::apply_J()
    cl_term *d = *(++it); //d
    chain.erase(chain.begin(), ++it); //remove a, b, c, d from the chain
    
-   cl_term* a2 = new cl_term(*a); //copy a
+   cl_term* a2 = new cl_term(*a, true); //copy a, allow delayed copy
    
    a2->chain.push_back(d);    //add d to a2
    a2->chain.push_back(c);    //add c to a2
@@ -498,7 +623,12 @@ void cl_term::replace_this_with_a(cl_term* a)
 {
    term = a->term;
    chain.splice(chain.begin(), a->chain);
-//   a->chain.clear(); //we copied it, so we should clear it, in order to not remove it
+   if (term == CL_TS_TERM)
+     {
+	ts = a->ts;
+	a->ts = NULL;
+	a->term++; //just make it not CL_TS_TERM to delete without problem
+     }
    delete a;
 }
 //                                                                           
@@ -695,3 +825,7 @@ void cl_term::add_postfix(string postfix)
      }
 }
 //                                                                       
+bool cl_term::is_nontrivial() 
+{
+   return chain.size() > 0 || term == CL_TS_TERM;
+}

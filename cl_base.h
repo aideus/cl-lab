@@ -24,21 +24,28 @@
 
 using namespace std;
 
+class cl_termstorage;
+
 class cl_term 
 {
  public:      
    cl_term(char term_, int* counter); //create empty 
-   cl_term(const cl_term&);           //copy all tree   
+   
+   //copy all tree and make delaying copy (is_delayed must be true)
+   cl_term(cl_term&, bool is_delayed);  
+
+   //make simple copy from constant term
+   cl_term(const cl_term&);  
+
    cl_term(string s, int* counter);   
    ~cl_term();
    
-   
-   //convert to string (recursively, so result is attached to str)
+   //convert to string (recursively, so result is attached to str) 
    //max_len --- maximal lenght of the string (0 - no limits, but could be dangerous)
    //return false if hit max_len
-   bool rec_conv2str(string &str, size_t max_len = 0) const;
+   bool rec_conv2str(string &str, size_t max_len = 0) const;      
    string conv2str(size_t max_len = 0) const;
-      
+   
    
    //try to make one step of reduction
    bool reduce();   
@@ -51,7 +58,11 @@ class cl_term
    //-2 --- we hit step limit
    //-3 --- we hit memory limit
    int reduce_all (int max_steps, int max_mem, cl_resultator* resultator = NULL); 
+   
+   //can return only < 0 if hits limit or 0
+   int one_level_reduce(int& steps_left, int max_mem);
    int reduce_all_(int& steps_left, int max_mem, cl_resultator* resultator = NULL); 
+   
    
    int count_nonterm_nodes();
    int get_nonterm_node(cl_term** term, int n);
@@ -76,8 +87,13 @@ class cl_term
    
    //add simple postfix
    void add_postfix(string postfix);
+   
+   //is this term is difficult enough to make delayed copy?
+
+   bool is_nontrivial(); 
  private:
-   void install_counter(int* counter);
+   void install_counter_null_ts(int* counter);
+   void init_from_term(const cl_term&);   //only copy term and chain!
       
    void apply_S(); //Sabc   ac(bc)
    void apply_K(); //Kab    a
@@ -97,6 +113,7 @@ class cl_term
    //recursively create term
    void rec_create_term(string s, size_t& pos); 
    
+   friend class cl_termstorage;
  private:
    char term;
    list<cl_term*> chain; // to which this term is applied
@@ -105,5 +122,7 @@ class cl_term
    int nsubterms; 
    
    int * counter; //internal variable for reduce_all (memory control)
+   
+   cl_termstorage* ts;
 };
 #endif

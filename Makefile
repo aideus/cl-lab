@@ -1,7 +1,7 @@
 
 OPT = -O2 -pedantic -Wall -Werror -g
 
-OBJS = cl_base.o cl_brute.o cl_ga_tools.o cl_resultator.o sp_parmap.o 
+OBJS = cl_base.o cl_termstorage.o cl_brute.o cl_ga_tools.o cl_resultator.o sp_parmap.o 
 
 all: cl_ga cl_interactive cl_print cl_bruteforce cl_multbruteforce
 

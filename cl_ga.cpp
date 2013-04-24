@@ -232,11 +232,12 @@ cl_ga_member* make_cl_ga_member(cl_term* cl)
    
    member->term = cl;
    member->term_str = cl->conv2str();
-      
+   
    cl_term cl_calc(*cl);
    if (!postfix.empty())
      cl_calc.add_postfix(postfix);
    cl_resultator_length resultator(req_rez.size(), ignore);
+
    int rez = cl_calc.reduce_all(max_steps, counter + max_mem, &resultator);
    
    member->rez = resultator.get_rez();
