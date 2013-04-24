@@ -46,7 +46,7 @@ int main(int argc, char*argv[])
 	  {
 	     int c = term.reduce_all(1, max_mem);	     
 	     cout<<term.conv2str()<<endl<<endl;
-	     if (c != -2) //step limit
+	     if (c != -2) //not a step limit
 	       return 0;
 	  }
 	return 0;
@@ -56,7 +56,7 @@ int main(int argc, char*argv[])
    
    cout<<"return code="<<code<<endl;
    
-   string rez = term.conv2str();
+   string rez = term.conv2str(p.get_i("lout"));
    string rezi;
    string ignore = p.get_s("ignore");
    for (size_t i = 0 ; i < rez.size() ; i++)
@@ -64,7 +64,7 @@ int main(int argc, char*argv[])
        if (rez[i] != '(' && rez[i] != ')')
 	 rezi.push_back(rez[i]);
    
-   cout<<rez.substr(0,p.get_i("lout"))<<endl<<endl;
-   cout<<rezi.substr(0,p.get_i("lout"))<<endl<<endl;
+   cout<<rez<<endl<<endl;
+   cout<<rezi<<endl<<endl;
 }
 //                                                                          

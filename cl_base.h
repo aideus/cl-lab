@@ -32,9 +32,13 @@ class cl_term
    cl_term(string s, int* counter);   
    ~cl_term();
    
-   void rec_print(ostream &out);   
-   string conv2str();
    
+   //convert to string (recursively, so result is attached to str)
+   //max_len --- maximal lenght of the string (0 - no limits, but could be dangerous)
+   //return false if hit max_len
+   bool rec_conv2str(string &str, size_t max_len = 0) const;
+   string conv2str(size_t max_len = 0) const;
+      
    
    //try to make one step of reduction
    bool reduce();   

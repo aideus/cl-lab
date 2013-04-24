@@ -1,5 +1,5 @@
 
-OPT = -O2 -pedantic -Wall -Werror 
+OPT = -O2 -pedantic -Wall -Werror -g
 
 OBJS = cl_base.o cl_brute.o cl_ga_tools.o cl_resultator.o sp_parmap.o 
 
@@ -23,5 +23,8 @@ cl_bruteforce:cl_bruteforce.cpp $(OBJS)
 cl_multbruteforce:cl_multbruteforce.cpp $(OBJS)
 	c++ $(OPT)  cl_multbruteforce.cpp -o cl_multbruteforce $(OBJS)
 
+cl_randomtest:cl_randomtest.cpp $(OBJS)
+	c++ $(OPT)  cl_randomtest.cpp -o cl_randomtest $(OBJS)
+
 clean:
-	rm -f *.o cl_ga cl_interactive cl_print cl_bruteforce cl_multbruteforce
+	rm -f *.o cl_ga cl_interactive cl_print cl_bruteforce cl_multbruteforce cl_randomtest

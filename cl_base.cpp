@@ -81,20 +81,22 @@ cl_term::~cl_term()
      delete *it;
 }
 //                                                                        
-void cl_term::rec_print(ostream& out)
+bool cl_term::rec_conv2str(string& str, size_t max_len) const
 {
-   out<<term;
-   for (list<cl_term*>::iterator it = chain.begin(); it != chain.end() ; it++)
+   
+   str += term;
+   for (list<cl_term*>::const_iterator it = chain.begin(); it != chain.end() ; it++)
      {
-	if ((*it)->chain.size() == 0)
-	  out<<(*it)->term;
-	else
-	  {
-	     out<<'(';
-	     (*it)->rec_print(out);
-	     out<<')';
-	  }
+	if ((*it)->chain.size() > 0)
+	  str +='(';
+	if ( ! (*it)->rec_conv2str(str, max_len) )
+	  return false;
+	if ((*it)->chain.size() > 0)
+	  str += ')';
      }
+   if (max_len > 0 && str.size() > max_len)
+     return false;
+   return true;   
 }
 //                                                                        
 /*void cl_term::non_rec_print(ostream& out)
@@ -137,11 +139,11 @@ void cl_term::rec_print(ostream& out)
      }
 }*/
 //                                                                        
-string cl_term::conv2str()
+string cl_term::conv2str(size_t max_len) const
 {
-   ostringstream out;
-   rec_print(out);
-   return out.str();
+   string str;
+   rec_conv2str(str, max_len);
+   return str;
 }
 //                                                                        
 bool cl_term::reduce()
@@ -223,10 +225,10 @@ int cl_term::reduce_all_(int& steps_left, int max_mem, cl_resultator* resultator
    while (reduce())
      {
 	steps_left--;
-	if (steps_left <= 0)
-	  return -2; //hit steps limit
 	if (max_mem <= *counter) 
 	  return -3; //hit memory limit
+	if (steps_left <= 0)
+	  return -2; //hit steps limit
      }
    //so head can be added to resultator
    if (resultator != NULL)

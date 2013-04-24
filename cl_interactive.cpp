@@ -31,8 +31,6 @@ int main(int argc, char*argv[])
 	cl_term term(str, &counter);
 	int rez = term.reduce_all(steps, 10000000);	
 	cout<<"return code = "<<rez<<endl;
-	ostringstream out;
-	term.rec_print(out);
-	cout<<out.str().substr(0, 1000)<<endl;
+	cout<<term.conv2str(1000)<<endl;
      }
 }
