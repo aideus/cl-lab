@@ -98,10 +98,7 @@ void init(int argc, char*argv[])
      nchildren = psize * 2;
    else
      nchildren  = p.get_i("nchildren");
-   
-   cout<<nchildren<<endl;
-   exit(EXIT_FAILURE);
-   
+      
    valuator = new cl_amga_valuator();
    
    postfix = p.get_s("postfix");
