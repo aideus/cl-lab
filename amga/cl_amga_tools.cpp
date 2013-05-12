@@ -19,12 +19,11 @@
 #include <map>
 
 //                                                                                                  
-double cl_amga_valuator::evaluate(const vector<string>& rez, size_t prog_len)
+double cl_amga_valuator::evaluate(const vector<string>& rez, size_t prog_len, double ac_K, double ac_Kxi)
 {
-   
-   double val = prog_len;
+   double val = ac_K * prog_len;
    for (size_t i = 0 ; i < rez.size() ; i++ )
-     val += rez[i].size();
+     val += ac_Kxi * rez[i].size();
    part_L = val;
    //now we calculate frequences
    map<string, size_t> freq_map;

@@ -26,6 +26,8 @@ const char* defv[] = {
    "max_length=\n               Maximal length of result",
    "alphabet=SKI\n              Alphabet",
    "ignore=\n                   Symbols to ignore in result",
+   "ac_K=1\n                    ac_K",
+   "ac_Kxi=1\n                  ac_Kxi",   
    "init_l=10\n                 Initial length of each of member",
    "psize=500\n                 The size of the population",
    "nchildren=auto\n            Number of children (if auto nchildre = psize * 2)",
@@ -48,7 +50,7 @@ int counter;   //global counter (we use it in cl_term for assess memory usage)
 double p_echange_mutation, p_trim_mutation;
 int crossover_type;
 string postfix;
-
+double ac_K, ac_Kxi;
 vector<cl_amga_member*> population;
 cl_ga_uniqchecker     uniqchecker;
 
@@ -93,6 +95,8 @@ void init(int argc, char*argv[])
    p_echange_mutation = p.get_d("p_echange_mutation");
    p_trim_mutation    = p.get_d("p_trim_mutation");
    max_length         = p.get_i("max_length");
+   ac_K               = p.get_d("ac_K");
+   ac_Kxi             = p.get_d("ac_Kxi");
    
    if (p.get_s("nchildren") == "auto")
      nchildren = psize * 2;
@@ -254,7 +258,7 @@ cl_amga_member* make_cl_amga_member(cl_term* cl)
      }
    if (!is_hit_limits) //ok
      {
-	member->penalty = valuator->evaluate(member->rez, member->term_str.size());
+	member->penalty = valuator->evaluate(member->rez, member->term_str.size(), ac_K, ac_Kxi);
 	member->part_L  = valuator->part_L;
 	member->part_H  = valuator->part_H;
      }

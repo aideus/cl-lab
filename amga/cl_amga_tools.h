@@ -21,7 +21,7 @@
 class cl_amga_valuator
 {
  public:
-   double evaluate(const vector<string>& rez, size_t prog_len);
+   double evaluate(const vector<string>& rez, size_t prog_len, double ac_K, double ac_Kxi);
  public:
    double part_L, part_H;
 };
