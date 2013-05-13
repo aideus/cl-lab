@@ -288,15 +288,15 @@ int cl_term::reduce_all(int max_steps, int max_mem, cl_resultator* resultator)
 int cl_term::one_level_reduce(int& steps_left, int max_mem)
 {
    while (1)
-     {
-//	cout<<"process: "<<term<<endl;
+     {	
+	//	cout<<"process: "<<term<<endl;
+	if (max_mem <= *counter) 
+	  return -3; //hit memory limit
 	if (reduce())
 	  {
 	     steps_left--;
 	     if (steps_left <= 0)
 	       return -2; //hit steps limit
-	     if (max_mem <= *counter) 
-	       return -3; //hit memory limit
 	  }
 	else if (term == CL_TS_TERM)
 	  {
@@ -342,7 +342,7 @@ int cl_term::one_level_reduce(int& steps_left, int max_mem)
 		  
 		  //and finally because it cannot be CL_TS_TERM
 		  ts = NULL; 
-	       }
+	       }	     
 	  }
 	else 
 	  return 0; //ok 

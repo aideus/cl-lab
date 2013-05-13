@@ -23,7 +23,7 @@ class cl_amga_valuator
  public:
    double evaluate(const vector<string>& rez, const string& prog, double ac_K, double ac_Kxi);
  public:
-   double part_L, part_H, used_ac_K, used_ac_Kxi;
+   double part_L1, part_L2, part_H, used_ac_K, used_ac_Kxi;
 };
 
 
@@ -34,7 +34,7 @@ class cl_amga_member
    string   term_str;  //term in form of string
    vector<string> rez; //computation rezult (till maximal length) for each member of ansamble
    double   penalty;   //quality assesment
-   double part_L, part_H; //part_L and part_H of penaly
+   double part_L1, part_L2, part_H; //part_L1, part_L2 and part_H of penaly
    double used_ac_K, used_ac_Kxi;  //used ac_K ac_Kxi
    int      generation;
  public:

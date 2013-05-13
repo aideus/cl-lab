@@ -219,7 +219,9 @@ void print_best_result()
    cout<<population.at(0)->term_str<<endl;
    for (size_t i = 0 ; i < ansamble.size() ; i++)     
      cout<<ansamble[i]<<" ----> "<<population.at(0)->rez[i]<<endl; 
-   cout<<"part_L="<<population.at(0)->part_L<<" part_H="<<population.at(0)->part_H<<endl;
+   cout<<"part_L1="<<population.at(0)->part_L1<<
+     " part_L2="<<population.at(0)->part_L2<<
+     " part_H="<<population.at(0)->part_H<<endl;
    cout<<"ac_K="<<population.at(0)->used_ac_K<<" ac_Kxi="<<population.at(0)->used_ac_Kxi<<endl;
 }
 //                                                                           
@@ -260,7 +262,8 @@ cl_amga_member* make_cl_amga_member(cl_term* cl)
    if (!is_hit_limits) //ok
      {
 	member->penalty = valuator->evaluate(member->rez, member->term_str, ac_K, ac_Kxi);
-	member->part_L  = valuator->part_L;
+	member->part_L1 = valuator->part_L1;
+	member->part_L2 = valuator->part_L2;
 	member->part_H  = valuator->part_H;
 	member->used_ac_K    = valuator->used_ac_K;
 	member->used_ac_Kxi  = valuator->used_ac_Kxi;

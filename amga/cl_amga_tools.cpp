@@ -27,12 +27,12 @@ double cl_amga_valuator::evaluate(const vector<string>& rez, const string& prog,
    
    if (ac_Kxi < 0)
      ac_Kxi = cl_amga_calc_ac_Kxi(rez);
-//   cout<<prog<<" "<<ac_K<<" "<<ac_Kxi<<endl;
    
-   double val = ac_K * prog.size();
+   part_L1 = ac_K * prog.size();
+   part_L2 = 0;
    for (size_t i = 0 ; i < rez.size() ; i++ )
-     val += ac_Kxi * rez[i].size() + log(rez[i].size() + 1) / log(2.0);
-   part_L = val;
+     part_L2 += ac_Kxi * rez[i].size() + log(rez[i].size() + 1.0) / log(2.0);
+   
    //now we calculate frequences
    map<string, size_t> freq_map;
    for (size_t i = 0 ; i < rez.size() ; i++)
@@ -53,12 +53,10 @@ double cl_amga_valuator::evaluate(const vector<string>& rez, const string& prog,
 	H -= Pi * log(Pi) / log(2.0); //Pi * log2(Pi);
      }
 //   cout<<"H="<<H<<endl;
-   val -= double(rez.size()) * H;
    part_H = -(rez.size() * H);
-//   cout<<"val="<<val<<endl;
    used_ac_K   = ac_K;
    used_ac_Kxi = ac_Kxi; 
-   return val;
+   return part_L1 + part_L2 + part_H;
 }
 //                                                                                  
 double cl_amga_calc_ac_Kxi(const vector<string>& ansamble)
