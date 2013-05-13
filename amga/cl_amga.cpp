@@ -26,8 +26,8 @@ const char* defv[] = {
    "max_length=\n               Maximal length of result",
    "alphabet=SKI\n              Alphabet",
    "ignore=\n                   Symbols to ignore in result",
-   "ac_K=1\n                    ac_K",
-   "ac_Kxi=1\n                  ac_Kxi",   
+   "ac_K=-1\n                   ac_K (if < 0 then log2(N_uniq_combinator + 0.5))",
+   "ac_Kxi=-1\n                 ac_Kxi (if < 0 then H(symbols in ansamble))",   
    "init_l=10\n                 Initial length of each of member",
    "psize=500\n                 The size of the population",
    "nchildren=auto\n            Number of children (if auto nchildre = psize * 2)",
@@ -97,7 +97,7 @@ void init(int argc, char*argv[])
    max_length         = p.get_i("max_length");
    ac_K               = p.get_d("ac_K");
    ac_Kxi             = p.get_d("ac_Kxi");
-   
+      
    if (p.get_s("nchildren") == "auto")
      nchildren = psize * 2;
    else
@@ -220,6 +220,7 @@ void print_best_result()
    for (size_t i = 0 ; i < ansamble.size() ; i++)     
      cout<<ansamble[i]<<" ----> "<<population.at(0)->rez[i]<<endl; 
    cout<<"part_L="<<population.at(0)->part_L<<" part_H="<<population.at(0)->part_H<<endl;
+   cout<<"ac_K="<<population.at(0)->used_ac_K<<" ac_Kxi="<<population.at(0)->used_ac_Kxi<<endl;
 }
 //                                                                           
 cl_amga_member* make_cl_amga_member(cl_term* cl)
@@ -258,9 +259,11 @@ cl_amga_member* make_cl_amga_member(cl_term* cl)
      }
    if (!is_hit_limits) //ok
      {
-	member->penalty = valuator->evaluate(member->rez, member->term_str.size(), ac_K, ac_Kxi);
+	member->penalty = valuator->evaluate(member->rez, member->term_str, ac_K, ac_Kxi);
 	member->part_L  = valuator->part_L;
 	member->part_H  = valuator->part_H;
+	member->used_ac_K    = valuator->used_ac_K;
+	member->used_ac_Kxi  = valuator->used_ac_Kxi;
      }
    else //we heat some limits (memory or number of steps)
      {

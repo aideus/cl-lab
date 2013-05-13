@@ -21,9 +21,9 @@
 class cl_amga_valuator
 {
  public:
-   double evaluate(const vector<string>& rez, size_t prog_len, double ac_K, double ac_Kxi);
+   double evaluate(const vector<string>& rez, const string& prog, double ac_K, double ac_Kxi);
  public:
-   double part_L, part_H;
+   double part_L, part_H, used_ac_K, used_ac_Kxi;
 };
 
 
@@ -35,10 +35,16 @@ class cl_amga_member
    vector<string> rez; //computation rezult (till maximal length) for each member of ansamble
    double   penalty;   //quality assesment
    double part_L, part_H; //part_L and part_H of penaly
+   double used_ac_K, used_ac_Kxi;  //used ac_K ac_Kxi
    int      generation;
  public:
    ~cl_amga_member() {if (term != NULL) delete term;};
 };
 
+//calculate ac_Kxi based on ansamble
+double cl_amga_calc_ac_Kxi(const vector<string>& ansamble);
+
+//calculate ac_K based on program K
+double cl_amga_calc_ac_K(string K);
 
 #endif
