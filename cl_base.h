@@ -47,8 +47,6 @@ class cl_term
    string conv2str(size_t max_len = 0) const;
    
    
-   //try to make one step of reduction
-   bool reduce();   
    
    //make full reduction
    //0 --- we finish but resultat haven't obtained or we wanted full reduction with 
@@ -57,8 +55,14 @@ class cl_term
    //-1 --- resultator told that we fail, so we stoped
    //-2 --- we hit step limit
    //-3 --- we hit memory limit
-   int reduce_all (int max_steps, int max_mem, cl_resultator* resultator = NULL); 
+   int reduce_all(int max_steps, int max_mem, cl_resultator* resultator = NULL); 
    
+   //try to make one step of reduction
+   //0 - cannot reduce on this level
+   //1 - success
+   //< 0 - some limit was hit (reduction incomplite)
+   int reduce_step(int& steps_left, int max_mem);   
+
    //can return only < 0 if hits limit or 0
    int one_level_reduce(int& steps_left, int max_mem);
    int reduce_all_(int& steps_left, int max_mem, cl_resultator* resultator = NULL); 
@@ -108,6 +112,11 @@ class cl_term
    void apply_b(); //B'xyz  y(xz)
    void apply_V(); //Vxyz   zxy
    
+   
+   //Fabcd  if (c == d) "a" else "b"
+   //cd have to be fully reduced
+   //return < 0 if some limit was hit during reduction of c or d
+   int  apply_F(int& steps_left, int max_mem); 
    
    void replace_this_with_a(cl_term* a);
    //recursively create term

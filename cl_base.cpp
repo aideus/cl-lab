@@ -211,7 +211,7 @@ string cl_term::conv2str(size_t max_len) const
    return str;
 }
 //                                                                        
-bool cl_term::reduce()
+int cl_term::reduce_step(int& steps_left, int max_mem)
 {
 //   rec_print(cout);
 //   cout<<endl;
@@ -219,64 +219,71 @@ bool cl_term::reduce()
    if (term == 'S' && chain.size() >= 3)
      {
 	apply_S();
-	return true;       
+	return 1;       
      }
    else if (term == 'K' && chain.size() >= 2)
      {
 	apply_K();
-	return true;
+	return 1;
      }
    else if (term == 'I' && chain.size() >= 1)
      {
 	apply_I();
-	return true;
+	return 1;
      }
    else if (term == 'B' && chain.size() >= 3)
      {
 	apply_B();
-	return true;
+	return 1;
      }
    else if (term == 'C' && chain.size() >= 3)
      {
 	apply_C();
-	return true;
+	return 1;
      }
    else if (term == 'W' && chain.size() >= 2)
      {
 	apply_W();
-	return true;
+	return 1;
      }
    else if (term == 'Y' && chain.size() >= 1)
      {
 	apply_Y();
-	return true;
+	return 1;
      }
    else if (term == 'M' && chain.size() >= 1)
      {
 	apply_M();
-	return true;
+	return 1;
      }
    else if (term == 'T' && chain.size() >= 2)
      {
 	apply_T();
-	return true;
+	return 1;
      }
    else if (term == 'J' && chain.size() >= 4)
      {
 	apply_J();
-	return true;
+	return 1;
      }
    else if (term == 'b' && chain.size() >= 3)
      {
 	apply_b();
-	return true;
+	return 1;
      }
    else if (term == 'V' && chain.size() >= 3)
      {
 	apply_V();
-	return true;
+	return 1;
      }   
-   return false;
+   else if (term == 'F' && chain.size() >= 4)
+     {
+	int rez = apply_F(steps_left, max_mem);
+	if (rez < 0) //limit was hit
+	  return rez;
+	return 1;
+     }   
+   return 0;
 }
 //                                                                             
 int cl_term::reduce_all(int max_steps, int max_mem, cl_resultator* resultator)
@@ -292,13 +299,18 @@ int cl_term::one_level_reduce(int& steps_left, int max_mem)
 	//	cout<<"process: "<<term<<endl;
 	if (max_mem <= *counter) 
 	  return -3; //hit memory limit
-	if (reduce())
+	int reduce_step_rez = reduce_step(steps_left, max_mem);
+	
+	if (reduce_step_rez < 0) //some limits was hit
+	  return reduce_step_rez;
+	
+	if (reduce_step_rez == 1) //successefull reduce_step
 	  {
 	     steps_left--;
 	     if (steps_left <= 0)
 	       return -2; //hit steps limit
 	  }
-	else if (term == CL_TS_TERM)
+	else if (term == CL_TS_TERM) //reduce_step_rez == 0 but could be CL_TS_TERM
 	  {
 	     if (!ts->is_reduced)
 	       {
@@ -344,8 +356,8 @@ int cl_term::one_level_reduce(int& steps_left, int max_mem)
 		  ts = NULL; 
 	       }	     
 	  }
-	else 
-	  return 0; //ok 
+	else  //reduce_step_rez == 0 and it is not CL_TS_TERM
+	  return 0; //ok reduction of level is complited
      }
 }
 //                                                                             
@@ -617,6 +629,52 @@ void cl_term::apply_V()
    
    //replace current term with c
    replace_this_with_a(c);
+}
+//                                                                             
+int cl_term::apply_F(int& steps_left, int max_mem)
+{
+   if (term != 'F' && chain.size() < 4)
+     {
+	cerr<<"Error | cl_term::apply_F | bad term application"<<endl;
+     }
+   //Fabcd  if (c == d) "a" else "b"
+   
+   list<cl_term*>::iterator it = chain.begin();
+   cl_term *a = *it;     //a
+   cl_term *b = *(++it); //b
+   cl_term *c = *(++it); //c
+   cl_term *d = *(++it); //d
+   
+   //now we ask to fully reduce c and d
+   int rez = c->reduce_all_(steps_left, max_mem);
+   if (rez < 0) //limits was hit
+     return rez;
+   
+   rez = d->reduce_all_(steps_left, max_mem);
+   if (rez < 0) //limits was hit
+     return rez;
+
+   chain.erase(chain.begin(), ++it); //remove a, b, c, d from the chain
+   
+   string str_c = c->conv2str();
+   string str_d = d->conv2str();
+   
+   delete c;
+   delete d;
+   
+   if (str_c == str_d)
+     {   
+	//replace current term with a
+	replace_this_with_a(a);
+	delete b;
+     }
+   else
+     {
+	//replace current term with b
+	replace_this_with_a(b);
+	delete a;	
+     }
+   return 0;
 }
 //                                                                           
 void cl_term::replace_this_with_a(cl_term* a)
