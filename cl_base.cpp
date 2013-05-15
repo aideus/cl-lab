@@ -136,6 +136,8 @@ cl_term::~cl_term()
 //                                                                        
 bool cl_term::rec_conv2str(string& str, size_t max_len) const
 {
+   if (max_len > 0 && str.size() > max_len)
+     return false;
    if (term == CL_TS_TERM)
      {
 	if (ts == NULL)
@@ -159,8 +161,6 @@ bool cl_term::rec_conv2str(string& str, size_t max_len) const
 	if ((*it)->chain.size() > 0 || (*it)->term == CL_TS_TERM)
 	  str += ')';
      }
-   if (max_len > 0 && str.size() > max_len)
-     return false;
    return true;
 }
 //                                                                        

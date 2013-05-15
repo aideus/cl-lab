@@ -31,7 +31,7 @@ double cl_amga_valuator::evaluate(const vector<string>& rez, const string& prog,
    part_L1 = ac_K * prog.size();
    part_L2 = 0;
    for (size_t i = 0 ; i < rez.size() ; i++ )
-     part_L2 += ac_Kxi * rez[i].size() + log(rez[i].size() + 1.0) / log(2.0);
+     part_L2 += ac_Kxi * (rez[i].size() + 1);
    
    //now we calculate frequences
    map<string, size_t> freq_map;
@@ -59,31 +59,14 @@ double cl_amga_valuator::evaluate(const vector<string>& rez, const string& prog,
    return part_L1 + part_L2 + part_H;
 }
 //                                                                                  
-double cl_amga_calc_ac_Kxi(const vector<string>& ansamble)
+double cl_amga_calc_ac_Kxi(const vector<string>& rez)
 {
-   //now we calculate frequences
-   map<char, size_t> freq_map;
-   size_t n_symb = 0;
-   for (size_t i = 0 ; i < ansamble.size() ; i++)
-     for (size_t j = 0 ; j < ansamble[i].size() ; j++)
-     {
-	n_symb++;
-	map<char, size_t>::iterator it = freq_map.find(ansamble[i][j]);
-	if (it == freq_map.end())
-	  {
-	     freq_map[ansamble[i][j]] = 1;
-	  }
-	else
-	  it->second++;
-     }
-   double H = 0;
-   for (map<char, size_t>::iterator it = freq_map.begin() ; it != freq_map.end() ; it++)
-     {	
-	double Pi = double(it->second) / double(n_symb);
-//	cout<<"Pi="<<Pi<<endl;
-	H -= Pi * log(Pi) / log(2.0); //Pi * log2(Pi);
-     }
-   return H;
+   set<char> set_uniq;
+   for (size_t i = 0 ; i < rez.size() ; i++)
+     for (size_t j = 0 ; j < rez[i].size() ; j++)
+       set_uniq.insert(rez[i][j]);
+   
+   return log(double(set_uniq.size()) + 1.0) / log(2.0);
 }
 //                                                                                      
 double cl_amga_calc_ac_K(string K)
