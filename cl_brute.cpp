@@ -54,8 +54,7 @@ void cl_brute_apply_brackets(string s, const vector< pair<int,int> >& brackets, 
      {
 	size_t pos1 = brackets[i].first;
 	size_t pos2 = brackets[i].second;
-	if (pos1 < 0 || pos1 >= ss.size() ||
-	    pos2 < 0 || pos2 >= ss.size())
+	if (pos1 >= ss.size() || pos2 >= ss.size())
 	  {
 	     cerr<<"Error | cl_brute_apply_brackets | internal error"<<endl;
 	     exit(EXIT_FAILURE);
