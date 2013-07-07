@@ -22,6 +22,12 @@
 #include <iostream>
 #include "cl_resultator.h"
 
+#if defined _WIN32 || defined _WIN64
+#include <time.h>
+#define random rand
+#define srandom srand
+#endif
+
 using namespace std;
 
 class cl_termstorage;
