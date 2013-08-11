@@ -37,6 +37,8 @@ const char* defv[] = {
    "pen_wrongrez=10\n           Penalty for each wrong symbol in the result",
    "pen_absentrez=10\n          Penalty for each empty symbol in the result",   
    "valuator_type=\n            Valuator type (s or a)",
+   "max_SS_n=\n                 Maximal quantity of similar S or S'",
+   "ext_type=e\n                Extinction type: e - elitist, p - proportional",
    "crossover_type=1\n          0-alex, 1-sergey1",
    NULL
 };
@@ -50,11 +52,16 @@ double p_echange_mutation, p_trim_mutation, p_yitrim_mutation;
 double pen_progsize, pen_wrongrez, pen_absentrez;
 string ans_alphabet; //alphabet of ansambler
 string valuator_type;
+size_t max_SS_n;
+string ext_type; // extinction type
 
 int crossover_type;
 
+const double INF_PENALTY = 1e+100; //infinity penalty
+
 vector<cl_ssprimega_member*> population;
 cl_ssprimega_uniqchecker     uniqchecker;
+multiset<string>    Sp_nchecker, S_nchecker;
 
 int iteration = 0; //iteration counter
 
@@ -64,14 +71,19 @@ void eva_step();
 void make_sex();
 void make_sex_between_terms(cl_term* t1, cl_term* t2);
 void extinction();
+void extinction_proportional();
+void delete_member(cl_ssprimega_member*);
 void print_best_result();
 
 //make new cl_ga_member from cl_term
 //cl_ga_member will delete term by itself after
 cl_ssprimega_member* make_cl_ssprimega_member(cl_term* Sp, cl_term* S);
+void try_to_add_or_delete(cl_term* Sp, cl_term* S);
 bool fun_for_sort_members(cl_ssprimega_member*m1, cl_ssprimega_member*m2);
 void read_ansamble(string file, vector<string>& req);
 void find_ans_alphabet();
+void multiset_delete_one(multiset<string>& S, string str );
+int max_count(const multiset<string>& S);
 
 int main(int argc, char*argv[])
 {
@@ -107,6 +119,10 @@ void init(int argc, char*argv[])
    
    valuator_type = p.get_s("valuator_type");
    
+   max_SS_n      = p.get_i("max_SS_n");
+   
+   ext_type      = p.get_s("ext_type");
+   
    if (p.get_s("nchildren") == "auto")
      nchildren = psize * 2;
    else
@@ -124,15 +140,7 @@ void create_population()
      {
 	cl_term* Sp = new cl_term(bg.create_random(), &counter);
 	cl_term* S = new cl_term(bg.create_random(), &counter);
-	if (uniqchecker.try_to_add(Sp->conv2str(), S->conv2str()))
-	  {
-	     population.push_back(make_cl_ssprimega_member(Sp, S));
-	  }
-	else
-	  {
-	     delete Sp;
-	     delete S;
-	  }
+	try_to_add_or_delete(Sp, S);
      }
    print_best_result();
 }
@@ -144,7 +152,19 @@ void eva_step()
      {
 	make_sex();
      }
-   extinction();
+   if (ext_type == "e") //elitist extinction
+     {
+	extinction();
+     }
+   else if (ext_type == "p") //proportional extinction
+     {
+	extinction_proportional();
+     }
+   else
+     {
+	cerr<<"Error | eva_step | unknown extinction type"<<endl;
+	exit(EXIT_FAILURE);
+     }
    print_best_result();
 }
 //                                                                          
@@ -175,22 +195,9 @@ void make_sex()
 	make_sex_between_terms(Sp1, Sp2);
    else
      make_sex_between_terms(S1, S2);
-        
-   if (uniqchecker.try_to_add(Sp1->conv2str(), S1->conv2str()))
-     population.push_back(make_cl_ssprimega_member(Sp1, S1));
-   else
-     {
-	delete Sp1;
-	delete S1;
-     }
-   if (uniqchecker.try_to_add(Sp2->conv2str(), S2->conv2str()))
-     population.push_back(make_cl_ssprimega_member(Sp2, S2));
-   else
-     {
-	delete Sp2;
-	delete S2;
-     }
-   
+       
+   try_to_add_or_delete(Sp1, S1); 
+   try_to_add_or_delete(Sp2, S2); 
 }
 //                                                                          
 void make_sex_between_terms(cl_term* t1, cl_term* t2)
@@ -221,22 +228,95 @@ void make_sex_between_terms(cl_term* t1, cl_term* t2)
 void extinction()
 {   
    sort(population.begin(), population.end(), fun_for_sort_members);
-   
+      
    for (size_t i = psize ; i < population.size() ; i++)
      {
-	uniqchecker.delete_term(population[i]->Sp_str, population[i]->S_str);
-	delete population[i];
+	delete_member(population[i]);
      }
    population.resize(psize);
+}
+//                                                                                      
+void extinction_proportional()
+{   
+   sort(population.begin(), population.end(), fun_for_sort_members);
+   
+   //make pre extinction (remove all with INF_PENALTY)
+   size_t n_del = 0;
+   for (size_t i = population.size() - 1 ; 
+	i >= psize && population[i]->penalty == INF_PENALTY ; //remove not more than psize
+	i--) 
+     {
+	delete_member(population[i]);
+	n_del++;
+     }
+   population.resize(population.size() - n_del);
+   
+   
+   if (population.size() == psize) //ok
+     return;
+
+   double min_prob = 0.02;
+   double max_prob = 1; 
+   double min_pen = population.front()->penalty; //probability of extinction min_prob
+   double max_pen = population.back()->penalty;   //probability of extinction max_prob
+   
+   if (min_pen == max_pen)  //in this case we make simple extinction
+     {
+	extinction();
+	return;
+     }
+//   cout<<"min/max="<<min_pen<<" "<<max_pen<<endl;
+   
+   double black_label = max_pen * 2;
+   
+   size_t ext = 0;
+   
+   while (ext < (population.size() - psize))  //we should kill (population.size() - psize)
+     {
+	size_t idx = random() % population.size();
+	if (population[idx]->penalty != black_label) //if it haven't been already killed
+	  {
+	     double ep = min_prob + (max_prob - min_prob) *
+	       (population[idx]->penalty - min_pen) / (max_pen - min_pen);
+//	     cout<<ep<<" "<<population[idx]->penalty<<" "<<min_pen<<"/"<<max_pen<<endl;
+	     double r = random() / double(RAND_MAX);
+	     if (ep > r) 
+	       {
+//		  if (population[idx]->penalty == min_pen)
+//		    cout<<"Best extinction "<<ep<<" "<<r<<endl;
+//		  cout<<"extinction"<<endl;
+		  population[idx]->penalty = black_label;
+		  ext++;
+	       }
+	  }
+     }
+
+   extinction();
+   for (size_t i = 0 ; i < population.size() ; i++)
+     if (population[i]->penalty == black_label)
+       {
+	  cerr<<"Error | extinction_proportional | internal"<<endl;
+	  exit(EXIT_FAILURE);
+       }
+}
+//                                                                           
+void delete_member(cl_ssprimega_member* m)
+{
+   uniqchecker.delete_term(m->Sp_str, m->S_str);
+   multiset_delete_one(Sp_nchecker, m->Sp_str);
+   multiset_delete_one(S_nchecker,  m->S_str);
+   delete m;
+}
+//                                                                           
+void print_best_result()
+{
    int nc = 0;
    for (size_t i = 0 ; i < population.size() ; i++)
      if (population[i]->generation == iteration)
        nc++;
    cout<<"survived children = "<<nc<<endl;
-}
-//                                                                           
-void print_best_result()
-{
+
+   cout<<"count: "<<Sp_nchecker.size()<<" "<<S_nchecker.size()<<" --> "<<max_count(Sp_nchecker)<<" "<<max_count(S_nchecker)<<endl;
    cout<<"Best/Worse="<<population.at(0)->penalty<<"/"<<population.back()->penalty<<endl;
    cout<<"Sp / S="<<population.at(0)->Sp_str<<" / "<<population.at(0)->S_str<<endl;
    for (size_t i = 0 ; i < ansamble.size() ; i++)     
@@ -244,6 +324,34 @@ void print_best_result()
    cout<<"part_L1="<<population.at(0)->part_L1<<
      " part_L2="<<population.at(0)->part_L2<<
      " part_R="<<population.at(0)->part_R<<endl;
+}
+//                                                                           
+void try_to_add_or_delete(cl_term* Sp, cl_term* S)
+{
+   string Sp_str = Sp->conv2str();
+   string S_str  = S->conv2str();
+   Sp_nchecker.insert(Sp_str);
+   S_nchecker.insert(S_str);
+   if (Sp_nchecker.count(Sp_str) >= max_SS_n || S_nchecker.count(S_str) >= max_SS_n)
+     {
+	multiset_delete_one(Sp_nchecker, Sp_str);
+	multiset_delete_one(S_nchecker,  S_str);
+	delete Sp;
+	delete S;
+	return;
+     }
+   if (uniqchecker.try_to_add(Sp_str, S_str))
+     {
+	population.push_back(make_cl_ssprimega_member(Sp, S));
+     }
+   else
+     {
+	multiset_delete_one(Sp_nchecker, Sp_str);
+	multiset_delete_one(S_nchecker,  S_str);
+	delete Sp;
+	delete S;
+	return;
+     }
 }
 //                                                                           
 cl_ssprimega_member* make_cl_ssprimega_member(cl_term* Sp, cl_term* S)
@@ -307,7 +415,7 @@ cl_ssprimega_member* make_cl_ssprimega_member(cl_term* Sp, cl_term* S)
      }
    else //we heat some limits (memory or number of steps)
      {
-	member->penalty = 1e+100; //some big number if we hit limits (bad style... I know)
+	member->penalty = INF_PENALTY; //some big number if we hit limits (bad style... I know)
      }
    member->generation = iteration;
    return member;
@@ -338,4 +446,27 @@ void find_ans_alphabet()
    ans_alphabet.clear();
    for (set<char>::iterator it = al.begin(); it != al.end() ; it++)
      ans_alphabet.push_back(*it);
+}
+//                                                                                        
+void multiset_delete_one(multiset<string>& S, string str )
+{
+   S.erase(S.find(str));
+}
+//                                                                                        
+int max_count(const multiset<string>& S)
+{
+   size_t m = 0;
+   multiset<string>::const_iterator it = S.begin();
+   while (it != S.end())
+     {
+	size_t urange_size = 0;
+	string s = *it;
+	while (it != S.end() && s == *it)
+	  {
+	     urange_size++;
+	     it++;
+	  }
+	m = max(urange_size, m);
+     }
+   return m;
 }

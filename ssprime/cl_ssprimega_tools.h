@@ -56,5 +56,4 @@ class cl_ssprimega_uniqchecker: private set<string>
    string create(string Sp, string S);
 };
 
-
 #endif

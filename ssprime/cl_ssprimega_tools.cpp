@@ -115,4 +115,3 @@ string cl_ssprimega_uniqchecker::create(string t1, string t2)
 {
    return t1 + "#" + "\0" + t2;
 }
-//                                                                                  
