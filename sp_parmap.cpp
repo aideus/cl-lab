@@ -30,7 +30,7 @@ string sp_parmap::get_s(const string & key)
    map<string,string>::const_iterator it = m.find(key);
    if ( it == m.end() )
      {
-	cerr<<"Error. Bad parameters: Can't find parameter \""<<key<<"\""<<endl;
+	cout<<"Error. Bad parameters: Can't find parameter \""<<key<<"\""<<endl;
 	error_exit();
      }
    return it->second;
@@ -43,7 +43,7 @@ double sp_parmap::get_d(const string& key)
    double rez = strtod(s.c_str(), &uk);
    if ( *uk != 0 || s.empty() )
      {
-	cerr<<"Error. Bad float-point parameters \""<<key<<"="<<s<<"\""<<endl;
+	cout<<"Error. Bad float-point parameters \""<<key<<"="<<s<<"\""<<endl;
 	error_exit();
      }
    return rez;
@@ -56,7 +56,7 @@ int sp_parmap::get_i(const string& key)
    int rez = strtol(s.c_str(), &uk, 10);
    if ( *uk != 0 || s.empty() )
      {
-	cerr<<"Error. Bad integer parameters \""<<key<<"="<<s<<"\""<<endl;
+	cout<<"Error. Bad integer parameters \""<<key<<"="<<s<<"\""<<endl;
 	error_exit();
      }
    return rez;
@@ -71,8 +71,8 @@ bool sp_parmap::get_b(const string& key)
      return true;
    if ( s == "f" || s == "false" || s == "0" )
      return false;
-   cerr<<"Error. Bad boolean parameter \""<<key<<"="<<s<<"\""<<endl;
-   cerr<<"(must be \"t\"|\"f\"|\"true\"|\"false\" \"0\"|\"1\")"<<endl;
+   cout<<"Error. Bad boolean parameter \""<<key<<"="<<s<<"\""<<endl;
+   cout<<"(must be \"t\"|\"f\"|\"true\"|\"false\" \"0\"|\"1\")"<<endl;
    exit(EXIT_FAILURE);
    return false;
 }
@@ -92,7 +92,7 @@ vector<string> sp_parmap::get_vs(const string& key, int quan, char sep)
      }
    if ( quan >= 0 && quan != (int)vec.size() )
      {
-	cerr<<"Bad number of vector of parameters \""<<key<<"="<<tmp<<"\""<<endl;
+	cout<<"Bad number of vector of parameters \""<<key<<"="<<tmp<<"\""<<endl;
 	exit(EXIT_FAILURE);
      }
    return vec;
@@ -109,7 +109,7 @@ vector<double> sp_parmap::get_vd(const string& key, int quan, char sep)
 	d_vec[i] = strtod(s_vec[i].c_str(), &uk);
 	if ( *uk != 0 || s_vec[i].empty() )
 	  {
-	     cerr<<"Error. Bad float-point parameters in vector: \""
+	     cout<<"Error. Bad float-point parameters in vector: \""
 	       <<key<<"="<<get_s(key)<<"\""<<endl;
 	     exit(EXIT_FAILURE);
 	  }
@@ -128,7 +128,7 @@ vector<int> sp_parmap::get_vi(const string& key, int quan, char sep)
 	i_vec[i] = strtol(s_vec[i].c_str(), &uk, 10);
 	if ( *uk != 0 || s_vec[i].empty() )
 	  {
-	     cerr<<"Error. Bad inteter parameters in vector: \""
+	     cout<<"Error. Bad inteter parameters in vector: \""
 	       <<key<<"="<<get_s(key)<<"\""<<endl;
 	     exit(EXIT_FAILURE);
 	  }
@@ -140,7 +140,7 @@ void sp_parmap::_init(int argc, const char** argv, const char*defv[])
 {
    if (argc < 1)
      {
-	cerr<<"Error | sp_parmap::sp_parmap | argc < 1"<<endl;
+	cout<<"Error | sp_parmap::sp_parmap | argc < 1"<<endl;
 	exit(EXIT_FAILURE);
      }
    pname = argv[0];
@@ -167,7 +167,7 @@ void sp_parmap::_init(int argc, const char** argv, const char*defv[])
 	  {
 	     if (!det_unnamed_zone)  //error
 	       {
-		  cerr<<"Error then load parameters: Ambiguous keyword ="
+		  cout<<"Error then load parameters: Ambiguous keyword ="
 		    <<endl;
 		  error_exit();
 	       }
@@ -176,7 +176,7 @@ void sp_parmap::_init(int argc, const char** argv, const char*defv[])
 	  {
 	     if ( (i - 1) >= (int)defv_param.size() )
 	       {
-		  cerr<<"Error then load parameters: "
+		  cout<<"Error then load parameters: "
 		    "Too many un-named arguments"<<endl;
 		  error_exit();
 	       }
@@ -199,7 +199,7 @@ void sp_parmap::_init(int argc, const char** argv, const char*defv[])
 		  if ( find(defv_param.begin(), defv_param.end(), arg1) == 
 		       defv_param.end())
 		    {
-		       cerr<<"Error then load parameters: Parameter \""<<
+		       cout<<"Error then load parameters: Parameter \""<<
 			 arg1<<"\" unknown"<<endl;
 		       error_exit();
 		    }
@@ -244,12 +244,12 @@ void sp_parmap::load_defv(const char* defv[],
 	string param_key_defv, param_desc, param_key, param_defv;
 	if (!separate(defv[i], param_key_defv, param_desc,'\n'))
 	  {
-	     cerr<<"Error then load parameters: bad defv (can't find \\n)"<<endl;
+	     cout<<"Error then load parameters: bad defv (can't find \\n)"<<endl;
 	     exit(EXIT_FAILURE);
 	  }
 	if (!separate(param_key_defv, param_key, param_defv, '='))
 	  {
-	     cerr<<"Error then load parameters: can't find = symbol"<<endl;
+	     cout<<"Error then load parameters: can't find = symbol"<<endl;
 	     exit(EXIT_FAILURE);
 	  }
 	param_desc.assign(param_desc, 
@@ -262,7 +262,7 @@ void sp_parmap::load_defv(const char* defv[],
      }
 //   if ( defv_param_key.back() != "VERSION" )
 //     {
-//	cerr<<"Error then load parameters: in defv last parameter "<<
+//	cout<<"Error then load parameters: in defv last parameter "<<
 //	  "MUST be \"VERSION\""<<endl;
   //   }
 }
@@ -271,7 +271,7 @@ void sp_parmap::add_to_map(string key,string param)
 {
    if (m.find(key) != m.end()) //find this key
      {
-	cerr<<"Error then load parameters: Parameter \""<<key
+	cout<<"Error then load parameters: Parameter \""<<key
 	  <<"\" duplicated"<<endl;
 	exit(EXIT_FAILURE);
      }

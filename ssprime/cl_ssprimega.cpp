@@ -316,7 +316,7 @@ void print_best_result()
        nc++;
    cout<<"survived children = "<<nc<<endl;
 
-   cout<<"count: "<<Sp_nchecker.size()<<" "<<S_nchecker.size()<<" --> "<<max_count(Sp_nchecker)<<" "<<max_count(S_nchecker)<<endl;
+   cout<<"count (maximal with the same Sp/S):  --> "<<max_count(Sp_nchecker)<<" "<<max_count(S_nchecker)<<endl;
    cout<<"Best/Worse="<<population.at(0)->penalty<<"/"<<population.back()->penalty<<endl;
    cout<<"Sp / S="<<population.at(0)->Sp_str<<" / "<<population.at(0)->S_str<<endl;
    for (size_t i = 0 ; i < ansamble.size() ; i++)     

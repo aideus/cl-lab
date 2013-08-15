@@ -27,7 +27,7 @@ const char* defv[] = {
    "alphabet=SKI\n              Alphabet",
    "ignore=\n                   Symbols to ignore in result",
    "ac_K=-1\n                   ac_K (if < 0 then log2(N_uniq_combinator + 0.5))",
-   "ac_Kxi=-1\n                 ac_Kxi (if < 0 then H(symbols in ansamble))",   
+   "ac_Kxi=-1\n                 ac_Kxi (if < 0 then log2(N_uniq_symbols_in_rez + 1))",   
    "init_l=10\n                 Initial length of each of member",
    "psize=500\n                 The size of the population",
    "nchildren=auto\n            Number of children (if auto nchildre = psize * 2)",
