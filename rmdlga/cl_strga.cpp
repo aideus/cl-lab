@@ -1,7 +1,7 @@
 //cl_strga.cpp
 
 #include "cl_strga.h"
-#include "cl_basa.h" //for random for windows...
+#include "cl_base.h" //for random for windows...
 #include <iostream>
 #include <cstdlib>
 
@@ -21,7 +21,7 @@ void cl_str_crossover(string& s1, string& s2)
    s2.replace(pos_s2, len_s2, sub_s1);
 }
 //                                                                  
-void cl_str_echange_mutation(string& s, double p, string alphabet)
+void cl_str_exchange_mutation(string& s, double p, string alphabet)
 {
    for (size_t i = 0 ; i < s.size() ; i++)
      {

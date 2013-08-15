@@ -30,7 +30,7 @@ const char* defv[] = {
    "nchildren=auto\n            Number of children (if auto nchildre = psize * 2)",
    "max_mem=10000\n             Maximal memory consumation during a single computation (nterms)",
    "max_steps=5000\n            Maximal reduction steps during a single computation",
-   "p_echange_mutation=0.05\n   probability of echange mutation",
+   "p_exchange_mutation=0.05\n  probability of exchange mutation",
    "p_trim_mutation=0.05\n      probability of trim mutation",
    "p_yitrim_mutation=0.1\n     probability of yi trim mutation",
    "pen_progsize=1\n            Penalty for size of the program (per symbol)",
@@ -48,7 +48,7 @@ string alphabet,ignore;
 size_t init_l, max_yi_l, psize, nchildren;
 size_t max_mem, max_steps;
 int counter;   //global counter (we use it in cl_term for assess memory usage)
-double p_echange_mutation, p_trim_mutation, p_yitrim_mutation;
+double p_exchange_mutation, p_trim_mutation, p_yitrim_mutation;
 double pen_progsize, pen_wrongrez, pen_absentrez;
 string ans_alphabet; //alphabet of ansambler
 string valuator_type;
@@ -109,7 +109,7 @@ void init(int argc, char*argv[])
    max_mem    = p.get_i("max_mem");
    max_steps  = p.get_i("max_steps");
    crossover_type     = p.get_i("crossover_type");
-   p_echange_mutation = p.get_d("p_echange_mutation");
+   p_exchange_mutation = p.get_d("p_exchange_mutation");
    p_trim_mutation    = p.get_d("p_trim_mutation");
    p_yitrim_mutation  = p.get_d("p_yitrim_mutation");
    
@@ -212,10 +212,10 @@ void make_sex_between_terms(cl_term* t1, cl_term* t2)
 	exit(EXIT_FAILURE);
      }
    
-   if (p_echange_mutation > 0)
+   if (p_exchange_mutation > 0)
      {
-	t1->echange_mutation(p_echange_mutation, alphabet);
-	t2->echange_mutation(p_echange_mutation, alphabet);
+	t1->exchange_mutation(p_exchange_mutation, alphabet);
+	t2->exchange_mutation(p_exchange_mutation, alphabet);
      }
    
    if (p_trim_mutation > 0)

@@ -19,7 +19,7 @@ using namespace std;
 #define __SEGER__CL_STRGA_H__
 
 void cl_str_crossover(string& s1, string& s2);
-void cl_str_echange_mutation(string& s, double p, string alphabet);
+void cl_str_exchange_mutation(string& s, double p, string alphabet);
 void cl_str_trim_mutation(string&s, double p);
 
 //create random substring with non zero length

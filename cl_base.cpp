@@ -846,14 +846,14 @@ void cl_term::crossover_s1(cl_term* a)
    swap(term1->term, term2->term);
 }
 //                                                                        
-void cl_term::echange_mutation(double p, string alphabet)
+void cl_term::exchange_mutation(double p, string alphabet)
 {
    if ( random()/(double)RAND_MAX < p )
      {
 	term = alphabet[random() % alphabet.size()];
      }
    for (list<cl_term*>::iterator it = chain.begin(); it != chain.end() ; it++)
-     (*it)->echange_mutation(p, alphabet);
+     (*it)->exchange_mutation(p, alphabet);
 }
 //                                                                       
 void cl_term::trim_mutation(double p)

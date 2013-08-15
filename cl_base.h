@@ -90,7 +90,7 @@ class cl_term
    //make term exchange crossover
    void crossover_s1(cl_term*);
    
-   void echange_mutation(double p, string alphabet);
+   void exchange_mutation(double p, string alphabet);
    
    //make only one trim at once!!!
    void trim_mutation(double p);
