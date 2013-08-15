@@ -256,7 +256,7 @@ void print_best_result()
    cout<<"Best/Worse="<<population.at(0)->penalty<<"/"<<population.back()->penalty<<endl;
       
    for (size_t i = 0 ; i < ansamble.size() ; i++)     
-     cout<<population.at(0)->term_str<<population.at(0)->yi[i]<<" ----> "<<population.at(0)->rez[i]<<endl; 
+     cout<<population.at(0)->term_str<<" "<<population.at(0)->yi[i]<<" ----> "<<population.at(0)->rez[i]<<endl; 
    cout<<"part_L1="<<population.at(0)->part_L1<<
      " part_L2="<<population.at(0)->part_L2<<
      " part_R="<<population.at(0)->part_R<<endl;

@@ -1,6 +1,7 @@
 //cl_strga.cpp
 
 #include "cl_strga.h"
+#include "cl_basa.h" //for random for windows...
 #include <iostream>
 #include <cstdlib>
 
