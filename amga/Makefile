@@ -1,9 +1,9 @@
 
 OPT = -O2 -pedantic -Wall -Werror -g -I../
 
-OBJS = cl_amga_tools.o cl_mamga_tools.o
+OBJS = cl_amga_tools.o cl_mamga_tools.o cl_tamga_tools.o
 
-all: cl_amga cl_amga_givenprog cl_amga_givenrez cl_mamga
+all: cl_amga cl_amga_givenprog cl_amga_givenrez cl_mamga cl_tamga
 
 .cpp.o:
 	c++ -c $(OPT) $*.cpp -o $*.o
@@ -14,6 +14,9 @@ cl_amga:cl_amga.cpp $(OBJS) cl_amga_tools.o
 
 cl_mamga:cl_mamga.cpp $(OBJS) cl_mamga_tools.o
 	c++ $(OPT) ../*.o  cl_mamga.cpp -o cl_mamga $(OBJS)
+
+cl_tamga:cl_tamga.cpp $(OBJS) cl_tamga_tools.o
+	c++ $(OPT) ../*.o  cl_tamga.cpp -o cl_tamga $(OBJS)
 
 
 
