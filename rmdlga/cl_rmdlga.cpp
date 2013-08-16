@@ -37,9 +37,10 @@ const char* defv[] = {
    "p_yitrim_mutation=0.1\n     probability of yi trim mutation",
    "pen_progsize=1\n            Penalty for size of the program (per symbol)",
    "pen_wrongrez=10\n           Penalty for each wrong symbol in the result",
-   "pen_absentrez=10\n          Penalty for each empty symbol in the result",   
+   "pen_absentrez=auto\n        Penalty for each empty symbol in the result (auto=pen_wrongrez)",   
    "valuator_type=\n            Valuator type (s or a)",
    "crossover_type=1\n          0-alex, 1-sergey1",
+   "is_precise_cmp=0\n          Make precise comparison of xi and Syi (not only prefix)",
    NULL
 };
 
@@ -52,6 +53,8 @@ double p_exchange_mutation, p_trim_mutation, p_yitrim_mutation;
 double pen_progsize, pen_wrongrez, pen_absentrez;
 string ans_alphabet; //alphabet of ansambler
 string valuator_type;
+bool is_precise_cmp; //if true we make precise comparison between xi and Syi
+                     //(if false we take only prefix of Syi)
 
 int crossover_type;
 
@@ -104,7 +107,16 @@ void init(int argc, char*argv[])
    
    pen_progsize  = p.get_d("pen_progsize");
    pen_wrongrez  = p.get_d("pen_wrongrez");
-   pen_absentrez = p.get_d("pen_absentrez");
+   
+   if (p.get_s("pen_absentrez") == "auto")
+     pen_absentrez = pen_wrongrez;
+   else
+     pen_absentrez = p.get_d("pen_absentrez");
+   
+//   cout<<pen_progsize<<" "<<pen_wrongrez<<" "<<pen_absentrez<<endl;
+   
+   
+   is_precise_cmp = p.get_b("is_precise_cmp");
    
    valuator_type = p.get_s("valuator_type");
    
@@ -277,12 +289,14 @@ cl_rmdlga_member* make_cl_rmdlga_member(cl_term* cl, const vector<string>& yi)
 	cl_term cl_calc(*cl);
 	cl_calc.add_postfix(member->yi[i]);
 	
-	cl_resultator_length resultator(ansamble[i].size(), ignore);
+	size_t req_length = ansamble[i].size();	
+	if (is_precise_cmp) // in this case we should allow longer results
+	  req_length = (size_t)(ansamble[i].size() * 1.5 + 2);
+	cl_resultator_length resultator(req_length, ignore);
 
-	int rez = cl_calc.reduce_all(max_steps, counter + max_mem, &resultator);
-	
+	int rez = cl_calc.reduce_all(max_steps, counter + max_mem, &resultator);	
       
-	if (rez == -1) //it's imposible
+	if (rez == -1) //it's imposible for this type of resultator
 	  {
 	     cerr<<"error | make_cl_ga_member | internal error"<<endl;
 	     exit(EXIT_FAILURE);
@@ -292,6 +306,8 @@ cl_rmdlga_member* make_cl_rmdlga_member(cl_term* cl, const vector<string>& yi)
 	  is_hit_limits = true;
 	
 	member->rez[i] = resultator.get_rez();
+	if (is_precise_cmp && member->rez[i].size() >= req_length) //resultat is too long
+	  is_hit_limits = true;
      }
    if (!is_hit_limits) //ok
      {

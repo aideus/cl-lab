@@ -15,22 +15,17 @@
 
 
 #include "cl_rmdlga_tools.h"
+#include <cmath>
 double cl_rmdlga_valuate_rez(string rez, string req_rez, double pen_wrongrez, double pen_absentrez)
 {
    double p = 0;
-   if (rez.size() < req_rez.size())
-     p += (req_rez.size() - rez.size()) * pen_absentrez; //penalty for absent bits in result
    
-   if (rez.size() > req_rez.size())
-     {
-	cerr<<"error | cl_rmdlga_valuate_rez | rez.size()="<<rez.size();
-	cerr<<" > req_rez.size()="<<req_rez.size()<<endl;
-	exit(EXIT_FAILURE);
-     }
+   //penalty for absent or extra bits in result
+   p += abs((int)req_rez.size() - (int)rez.size()) * pen_absentrez; 
+        
    for (size_t i = 0 ; i < rez.size(); i++)
      if (rez[i] != req_rez[i])
        p += pen_wrongrez;    //penalty for wrong bit in the result
-   
    return p;
 }
 //                                                            
