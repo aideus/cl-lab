@@ -19,10 +19,17 @@ double cl_ssprimega_valuate_rez(string rez, string req_rez, double pen_wrongrez,
 {
    double p = 0;
    
+   if (pen_absentrez < pen_wrongrez)
+     {
+	cout<<"Error | cl_ssprimega_valuate_rez | pen_absentrez < pen_wrongrez"<<endl;
+	exit(EXIT_FAILURE);
+     }
+   
    //penalty for absent or extra bits in result
    p += abs((int)req_rez.size() - (int)rez.size()) * pen_absentrez;
    
-   for (size_t i = 0 ; i < rez.size(); i++)
+   size_t len = min(rez.size(), req_rez.size());   
+   for (size_t i = 0 ; i < len; i++)
      if (rez[i] != req_rez[i])
        p += pen_wrongrez;    //penalty for wrong bit in the result
    
