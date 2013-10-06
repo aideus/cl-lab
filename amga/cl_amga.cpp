@@ -46,7 +46,7 @@ size_t max_length;
 size_t init_l, psize, nchildren;
 cl_amga_valuator* valuator;
 size_t max_mem, max_steps;
-int counter;   //global counter (we use it in cl_term for assess memory usage)
+int counter = 0;   //global counter (we use it in cl_term for assess memory usage)
 double p_exchange_mutation, p_trim_mutation;
 int crossover_type;
 string postfix;

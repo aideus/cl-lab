@@ -37,7 +37,7 @@ const char* defv[] = {
 vector<string> ansamble;
 string alphabet,ignore, prog;
 size_t max_mem, max_steps;
-int counter;   //global counter (we use it in cl_term for assess memory usage)
+int counter = 0;   //global counter (we use it in cl_term for assess memory usage)
 string postfix;
 double ac_K, ac_Kxi;
 size_t max_length;

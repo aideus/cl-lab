@@ -48,7 +48,7 @@ vector<string> ansamble;
 string alphabet,ignore;
 size_t init_l, max_yi_l, psize, nchildren;
 size_t max_mem, max_steps;
-int counter;   //global counter (we use it in cl_term for assess memory usage)
+int counter = 0;   //global counter (we use it in cl_term for assess memory usage)
 double p_exchange_mutation, p_trim_mutation, p_yitrim_mutation;
 double pen_progsize, pen_wrongrez, pen_absentrez;
 string ans_alphabet; //alphabet of ansambler
