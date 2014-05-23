@@ -23,6 +23,8 @@ cl_ga - program for search CL expression which generate a give results
         by genetic algorithm.
 	example: ./cl_ga 010101010101010101010101 alphabet=SKI01 ignore=SKI
 	
+rmdlga  --- implementations of R-Search
+sspirme --- implementation  of SS'-Search
 	
 KNOWN BUGS:
 
